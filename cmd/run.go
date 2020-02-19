@@ -164,11 +164,19 @@ func runTask(taskRequest TaskRequest) error {
 		}
 
 		if len(parts) == 2 {
-			mountVal := mount.Mount{
-				Source: parts[0],
-				Target: parts[1],
+			mountVal := mount.Mount{}
+			if strings.HasPrefix(parts[0], "v:") {
+					mountVal = mount.Mount{
+							Type: mount.TypeVolume,
+							Source: strings.TrimLeft(parts[0], "v:"),
+							Target: parts[1],
+					}
+			} else {
+					mountVal = mount.Mount{
+							Source: parts[0],
+							Target: parts[1],
+					}
 			}
-
 			spec.TaskTemplate.ContainerSpec.Mounts = append(spec.TaskTemplate.ContainerSpec.Mounts, mountVal)
 		}
 	}
