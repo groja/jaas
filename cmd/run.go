@@ -185,7 +185,17 @@ func runTask(taskRequest TaskRequest) error {
 
 	spec.TaskTemplate.ContainerSpec.Secrets = []*swarm.SecretReference{}
 	for _, serviceSecret := range taskRequest.Secrets {
+		var secretPath string
 		var secretID string
+
+		// Check if the secret has a mount target specified and split/assign variables as needed.
+		parts := strings.Split(serviceSecret, ":")
+		if len(parts) == 2 {
+			serviceSecret = parts[0]
+			secretPath = parts[1]
+		} else {
+			secretPath = serviceSecret
+		}
 		for _, s := range secretList {
 			if serviceSecret == s.Spec.Annotations.Name {
 				secretID = s.ID
@@ -199,7 +209,7 @@ func runTask(taskRequest TaskRequest) error {
 
 		secretVal := swarm.SecretReference{
 			File: &swarm.SecretReferenceFileTarget{
-				Name: serviceSecret,
+				Name: secretPath,
 				UID:  "0",
 				GID:  "0",
 				Mode: os.FileMode(0444), // File can be read by any user inside the container
